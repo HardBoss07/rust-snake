@@ -1,74 +1,101 @@
-use minifb::{Window, WindowOptions};
+use minifb::{Key, Window, WindowOptions};
 use std::thread;
 use std::time::Duration;
 
-fn main() {
-    let width = 600;
-    let height = 400;
-
-    let mut window = Window::new("Snake", width, height, WindowOptions::default()).unwrap();
-    let mut buffer: Vec<u32> = vec![0; width * height];
-
-    let cell_size = 20;
-
-    let starting_position: [usize; 2] = [10, 15];
-
-    reset_buffer(&mut buffer, width, height, cell_size);
-
-    while window.is_open() {
-        if window.is_key_down(minifb::Key::Space) {
-            set_cell_color(&mut buffer, width, height, cell_size, starting_position[0], starting_position[1], 0xFF0000);
-
-            window.update_with_buffer(&buffer, width, height);
-
-            thread::sleep(Duration::from_millis(2000));
-
-            reset_buffer(&mut buffer, width, height, cell_size);
-        }
-
-        window.update_with_buffer(&buffer, width, height).unwrap();
-
-        if window.is_key_down(minifb::Key::Escape) {
-            break;
-        }
-    }
+struct Game {
+    window: Window,
+    width: usize,
+    height: usize,
+    buffer: Vec<u32>,
+    cell_size: usize,
 }
 
-fn reset_buffer(buffer: &mut Vec<u32>, width: usize, height: usize, cell_size: usize) {
-    let cols = width / cell_size;
-    let rows = height / cell_size;
+impl Game {
+    fn new() -> Self {
+        let width = 600;
+        let height = 400;
 
-    for i in 0..buffer.len() {
-        buffer[i] = 0x318F40;
+        let window = Window::new("Snake", width, height, WindowOptions::default())
+            .expect("Failed to create window");
+
+        let buffer = vec![0x000000; width * height];
+
+        Game {
+            window,
+            width,
+            height,
+            buffer,
+            cell_size: 20,
+        }
     }
 
-    for row in 0..=rows {
-        let y = row * cell_size;
-        for col in 0..=cols {
-            let x = col * cell_size;
+    fn run(&mut self) {
+        let starting_position: [usize; 2] = [10, 15];
 
-            if (row + col) % 2 == 0 {
-                for i in 0..cell_size {
-                    for j in 0..cell_size {
-                        if x + i < width && y + j < height {
-                            buffer[(y + j) * width + (x + i)] = 0x4CAD5C;
+        while self.window.is_open() {
+            if self.window.is_key_down(Key::Space) {
+                self.set_cell_color(starting_position[0], starting_position[1], 0xFF0000);
+                self.update();
+                thread::sleep(Duration::from_millis(2000));
+                self.reset_buffer();
+            }
+
+            self.update();
+
+            if self.window.is_key_down(Key::Escape) {
+                break;
+            }
+        }
+    }
+
+    fn update(&mut self) {
+        self.window
+            .update_with_buffer(&self.buffer, self.width, self.height)
+            .expect("Failed to update window");
+    }
+
+    fn reset_buffer(&mut self) {
+        let cols = self.width / self.cell_size;
+        let rows = self.height / self.cell_size;
+
+        for i in 0..self.buffer.len() {
+            self.buffer[i] = 0x318F40;
+        }
+
+        for row in 0..=rows {
+            let y = row * self.cell_size;
+            for col in 0..cols {
+                let x = col * self.cell_size;
+
+                if (row + col) % 2 == 0 {
+                    for i in 0..self.cell_size {
+                        for j in 0..self.cell_size {
+                            if x + i < self.width && y + j < self.height {
+                                self.buffer[(y + j) * self.width + (x + i)] = 0x4CAD5C;
+                            }
                         }
                     }
                 }
             }
         }
     }
-}
 
-fn set_cell_color(buffer: &mut Vec<u32>, width: usize, height: usize, cell_size: usize, row: usize, col: usize, color: u32) {
-    let x = col * cell_size;
-    let y = row * cell_size;
+    fn set_cell_color(&mut self, row: usize, col: usize, color: u32) {
+        let x = col * self.cell_size;
+        let y = row * self.cell_size;
 
-    for i in 0..cell_size {
-        for j in 0..cell_size {
-            if x + i < width && y + j < height {
-                buffer[(y + j) * width + (x + i)] = color;
+        for i in 0..self.cell_size {
+            for j in 0..self.cell_size {
+                if x + i < self.width && y + j < self.height {
+                    self.buffer[(y + j) * self.width + (x + i)] = color;
+                }
             }
         }
     }
+}
+
+fn main() {
+    let mut game = Game::new();
+    game.reset_buffer();
+    game.run();
 }

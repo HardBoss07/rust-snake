@@ -404,7 +404,6 @@ name = "rust-snake"
 version = "0.1.0"
 dependencies = [
  "minifb",
- "once_cell",
 ]
 
 [[package]]

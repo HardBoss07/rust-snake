@@ -8,6 +8,14 @@ struct Game {
     height: usize,
     buffer: Vec<u32>,
     cell_size: usize,
+    snake: Snake,
+}
+
+struct Snake {
+    color: u32,
+    current_position: [usize; 2],
+    direction: u8,
+    snake_length: u16,
 }
 
 impl Game {
@@ -20,24 +28,42 @@ impl Game {
 
         let buffer = vec![0x000000; width * height];
 
+        let color = 0xFF73F1;
+        let starting_position: [usize; 2] = [10, 15];
+        let direction = 0;
+        let snake_length = 1;
+
+        let snake = Snake {
+            color: color,
+            current_position: starting_position,
+            direction: direction,
+            snake_length: snake_length,
+        };
+
         Game {
             window,
             width,
             height,
             buffer,
             cell_size: 20,
+            snake,
         }
     }
 
     fn run(&mut self) {
-        let starting_position: [usize; 2] = [10, 15];
+        let mut has_started = false;
 
         while self.window.is_open() {
-            if self.window.is_key_down(Key::Space) {
-                self.set_cell_color(starting_position[0], starting_position[1], 0xFF0000);
+            if self.window.is_key_down(Key::Space) && has_started == false {
+                has_started = true;
+                self.set_cell_color(self.snake.current_position[0], self.snake.current_position[1], self.snake.color);
                 self.update();
-                thread::sleep(Duration::from_millis(2000));
-                self.reset_buffer();
+            }
+
+            if has_started == true {
+                self.capture_input(300);
+                self.calculate_next_position();
+                self.set_cell_color(self.snake.current_position[0], self.snake.current_position[1], self.snake.color);
             }
 
             self.update();
@@ -45,6 +71,53 @@ impl Game {
             if self.window.is_key_down(Key::Escape) {
                 break;
             }
+        }
+    }
+
+    fn capture_input(&mut self, amount: u16) {
+        for i in 0..=amount {
+            self.change_direction();
+            thread::sleep(Duration::from_millis(1));
+        }
+    }
+
+    fn change_direction(&mut self) {
+        if self.window.is_key_down(Key::W) {
+            self.snake.direction = 1;                  // Up
+        } else if self.window.is_key_down(Key::A) {
+            self.snake.direction = 2;                  // Left
+        } else if self.window.is_key_down(Key::S) {
+            self.snake.direction = 3;                  // Down
+        } else if (self.window.is_key_down(Key::D)) {
+            self.snake.direction = 0;                  // Right
+        } else {
+
+        }
+    }
+
+    fn calculate_next_position(&mut self) {
+        match self.snake.direction {
+            0 => {
+                if self.snake.current_position[1] < self.width / self.cell_size - 1 {
+                    self.snake.current_position[1] += 1;
+                }
+            }
+            1 => {
+                if self.snake.current_position[0] > 0 {
+                    self.snake.current_position[0] -= 1;
+                }
+            }
+            2 => {
+                if self.snake.current_position[1] > 0 {
+                    self.snake.current_position[1] -= 1;
+                }
+            }
+            3 => {
+                if self.snake.current_position[0] < self.height / self.cell_size - 1 {
+                    self.snake.current_position[0] += 1;
+                }
+            }
+            _ => {}
         }
     }
 

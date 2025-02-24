@@ -74,10 +74,11 @@ impl Game {
         }
     }
 
-    fn capture_input(&mut self, amount: u16) {
+    fn capture_input(&mut self, mut amount: u64) {
+        amount *= 1000;
         for i in 0..=amount {
             self.change_direction();
-            thread::sleep(Duration::from_millis(1));
+            thread::sleep(Duration::from_micros(amount));
         }
     }
 

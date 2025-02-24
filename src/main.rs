@@ -61,7 +61,7 @@ impl Game {
             }
 
             if has_started == true {
-                self.capture_input(300);
+                self.capture_input(150);
                 self.calculate_next_position();
                 self.set_cell_color(self.snake.current_position[0], self.snake.current_position[1], self.snake.color);
             }
@@ -75,10 +75,10 @@ impl Game {
     }
 
     fn capture_input(&mut self, mut amount: u64) {
-        amount *= 1000;
+        amount *= 2;
         for i in 0..=amount {
             self.change_direction();
-            thread::sleep(Duration::from_micros(amount));
+            thread::sleep(Duration::from_micros(5));
         }
     }
 

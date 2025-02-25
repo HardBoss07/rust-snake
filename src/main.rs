@@ -83,13 +83,13 @@ impl Game {
     }
 
     fn change_direction(&mut self) {
-        if self.window.is_key_down(Key::W) {
+        if self.window.is_key_down(Key::W) && self.snake.direction != 3 {
             self.snake.direction = 1;                  // Up
-        } else if self.window.is_key_down(Key::A) {
+        } else if self.window.is_key_down(Key::A) && self.snake.direction != 0 {
             self.snake.direction = 2;                  // Left
-        } else if self.window.is_key_down(Key::S) {
+        } else if self.window.is_key_down(Key::S) && self.snake.direction != 1 {
             self.snake.direction = 3;                  // Down
-        } else if (self.window.is_key_down(Key::D)) {
+        } else if (self.window.is_key_down(Key::D)) && self.snake.direction != 2 {
             self.snake.direction = 0;                  // Right
         } else {
 

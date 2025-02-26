@@ -1,6 +1,7 @@
 use minifb::{Key, Window, WindowOptions};
 use std::thread;
 use std::time::Duration;
+use std::collections::VecDeque;
 
 struct Game {
     window: Window,
@@ -13,9 +14,9 @@ struct Game {
 
 struct Snake {
     color: u32,
-    current_position: [usize; 2],
+    body: VecDeque<[usize; 2]>,
     direction: u8,
-    snake_length: u16,
+    length: usize,
 }
 
 impl Game {
@@ -31,13 +32,15 @@ impl Game {
         let color = 0xFF73F1;
         let starting_position: [usize; 2] = [10, 15];
         let direction = 0;
-        let snake_length = 1;
+        let snake_length = 3;
+        let mut snake_body = VecDeque::new();
+        snake_body.push_front(starting_position);
 
         let snake = Snake {
             color: color,
-            current_position: starting_position,
+            body: snake_body,
             direction: direction,
-            snake_length: snake_length,
+            length: snake_length,
         };
 
         Game {
@@ -56,14 +59,16 @@ impl Game {
         while self.window.is_open() {
             if self.window.is_key_down(Key::Space) && has_started == false {
                 has_started = true;
-                self.set_cell_color(self.snake.current_position[0], self.snake.current_position[1], self.snake.color);
+                let head = *self.snake.body.front().unwrap();
+                self.set_cell_color(head[0], head[1], self.snake.color);
                 self.update();
             }
 
             if has_started == true {
                 self.capture_input(150);
                 self.calculate_next_position();
-                self.set_cell_color(self.snake.current_position[0], self.snake.current_position[1], self.snake.color);
+                let head = *self.snake.body.front().unwrap();
+                self.set_cell_color(head[0], head[1], self.snake.color);
             }
 
             self.update();
@@ -97,28 +102,29 @@ impl Game {
     }
 
     fn calculate_next_position(&mut self) {
+        let head = *self.snake.body.front().unwrap();
+        let mut new_head = head;
+
         match self.snake.direction {
-            0 => {
-                if self.snake.current_position[1] < self.width / self.cell_size - 1 {
-                    self.snake.current_position[1] += 1;
-                }
-            }
-            1 => {
-                if self.snake.current_position[0] > 0 {
-                    self.snake.current_position[0] -= 1;
-                }
-            }
-            2 => {
-                if self.snake.current_position[1] > 0 {
-                    self.snake.current_position[1] -= 1;
-                }
-            }
-            3 => {
-                if self.snake.current_position[0] < self.height / self.cell_size - 1 {
-                    self.snake.current_position[0] += 1;
-                }
-            }
+            0 => new_head[1] += 1,
+            1 => new_head[0] -= 1,
+            2 => new_head[1] -= 1,
+            3 => new_head[0] += 1,
             _ => {}
+        }
+
+        self.snake.body.push_front(new_head);
+
+        if self.snake.body.len() > self.snake.length {
+            let tail = self.snake.body.pop_back().unwrap();
+
+            let original_color = if (tail[0] + tail[1]) % 2 == 0 {
+                0x4CAD5C 
+            } else {
+                0x318F40
+            };
+
+            self.set_cell_color(tail[0], tail[1], original_color);
         }
     }
 

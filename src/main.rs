@@ -20,6 +20,26 @@ struct Snake {
     length: usize,
 }
 
+impl Snake {
+    fn new() -> Self {
+        let color = 0xFF73F1;
+
+        let direction = 0;
+        let snake_length = 5;
+
+        let starting_position: [usize; 2] = [10, 15];
+        let mut snake_body = VecDeque::new();
+        snake_body.push_front(starting_position);
+
+        Snake {
+            color: color,
+            body: snake_body,
+            direction: direction,
+            length: snake_length,
+        }
+    }
+}
+
 impl Game {
     fn new() -> Self {
         let width = 600;
@@ -30,27 +50,13 @@ impl Game {
 
         let buffer = vec![0x000000; width * height];
 
-        let color = 0xFF73F1;
-        let starting_position: [usize; 2] = [10, 15];
-        let direction = 0;
-        let snake_length = 5;
-        let mut snake_body = VecDeque::new();
-        snake_body.push_front(starting_position);
-
-        let snake = Snake {
-            color: color,
-            body: snake_body,
-            direction: direction,
-            length: snake_length,
-        };
-
         Game {
             window,
             width,
             height,
             buffer,
             cell_size: 20,
-            snake,
+            snake: Snake::new(),
             has_started: false,
         }
     }
@@ -70,6 +76,10 @@ impl Game {
                 self.calculate_next_position();
                 let head = *self.snake.body.front().unwrap();
                 self.set_cell_color(head[0], head[1], self.snake.color);
+            }
+
+            if !self.has_started {
+                self.snake = Snake::new();
             }
 
             self.update();

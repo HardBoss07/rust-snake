@@ -10,6 +10,7 @@ struct Game {
     buffer: Vec<u32>,
     cell_size: usize,
     snake: Snake,
+    has_started: bool,
 }
 
 struct Snake {
@@ -32,7 +33,7 @@ impl Game {
         let color = 0xFF73F1;
         let starting_position: [usize; 2] = [10, 15];
         let direction = 0;
-        let snake_length = 3;
+        let snake_length = 5;
         let mut snake_body = VecDeque::new();
         snake_body.push_front(starting_position);
 
@@ -50,21 +51,21 @@ impl Game {
             buffer,
             cell_size: 20,
             snake,
+            has_started: false,
         }
     }
 
     fn run(&mut self) {
-        let mut has_started = false;
-
         while self.window.is_open() {
-            if self.window.is_key_down(Key::Space) && has_started == false {
-                has_started = true;
+            if self.window.is_key_down(Key::Space) && self.has_started == false {
+                self.reset_buffer();
+                self.has_started = true;
                 let head = *self.snake.body.front().unwrap();
                 self.set_cell_color(head[0], head[1], self.snake.color);
                 self.update();
             }
 
-            if has_started == true {
+            if self.has_started == true {
                 self.capture_input(150);
                 self.calculate_next_position();
                 let head = *self.snake.body.front().unwrap();
@@ -107,10 +108,27 @@ impl Game {
 
         match self.snake.direction {
             0 => new_head[1] += 1,
-            1 => new_head[0] -= 1,
-            2 => new_head[1] -= 1,
+            1 => {
+                if new_head[0] == 0 {
+                    self.has_started = false;
+                    return;
+                }
+                new_head[0] -= 1;
+            }
+            2 => {
+                if new_head[1] == 0 {
+                    self.has_started = false;
+                    return;
+                }
+                new_head[1] -= 1;
+            }
             3 => new_head[0] += 1,
             _ => {}
+        }
+
+        if new_head[0] >= self.height / self.cell_size || new_head[1] >= self.width / self.cell_size {
+            self.has_started = false;
+            return;
         }
 
         self.snake.body.push_front(new_head);

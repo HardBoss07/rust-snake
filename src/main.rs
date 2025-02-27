@@ -2,6 +2,7 @@ use minifb::{Key, Window, WindowOptions};
 use std::thread;
 use std::time::Duration;
 use std::collections::VecDeque;
+use rand::random_range;
 
 struct Game {
     window: Window,
@@ -11,6 +12,7 @@ struct Game {
     cell_size: usize,
     snake: Snake,
     has_started: bool,
+    cookie_pos: [usize; 2],
 }
 
 struct Snake {
@@ -27,7 +29,7 @@ impl Snake {
         let direction = 0;
         let snake_length = 5;
 
-        let starting_position: [usize; 2] = [10, 15];
+        let starting_position: [usize; 2] = [10, 12];
         let mut snake_body = VecDeque::new();
         snake_body.push_front(starting_position);
 
@@ -58,6 +60,7 @@ impl Game {
             cell_size: 20,
             snake: Snake::new(),
             has_started: false,
+            cookie_pos: [8, 9],
         }
     }
 
@@ -68,12 +71,16 @@ impl Game {
                 self.has_started = true;
                 let head = *self.snake.body.front().unwrap();
                 self.set_cell_color(head[0], head[1], self.snake.color);
+                self.set_cell_color(self.cookie_pos[0], self.cookie_pos[1], 0xF59B42);
                 self.update();
             }
 
             if self.has_started == true {
                 self.capture_input(150);
                 self.calculate_next_position();
+
+                self.cookie_check();
+
                 let head = *self.snake.body.front().unwrap();
                 self.set_cell_color(head[0], head[1], self.snake.color);
             }
@@ -83,9 +90,50 @@ impl Game {
             }
 
             self.update();
-
+            
             if self.window.is_key_down(Key::Escape) {
                 break;
+            }
+        }
+    }
+
+    fn cookie_check(&mut self) {
+        let head = *self.snake.body.front().unwrap();
+        if head == self.cookie_pos {
+            self.snake.length += 1;
+            self.rand_cookie_pos();
+            self.set_cell_color(self.cookie_pos[0], self.cookie_pos[1], 0xF59B42);
+        }
+    }
+
+    fn rand_cookie_pos(&mut self) {
+        let mut rng = rand::thread_rng();
+        let max_attempts = 100;
+        let mut attempts = 0;
+    
+        while attempts < max_attempts {
+            let x = random_range(0..(self.height / self.cell_size));
+            let y = random_range(0..(self.width / self.cell_size));
+            let target = [x, y];
+
+            println!("{:?}", target);
+    
+            if !self.snake.body.contains(&target) {
+                self.cookie_pos = target;
+                return;
+            }
+    
+            attempts += 1;
+        }
+    
+        // fallback
+        for x in 0..(self.width / self.cell_size) {
+            for y in 0..(self.height / self.cell_size) {
+                let fallback = [x, y];
+                if !self.snake.body.contains(&fallback) {
+                    self.cookie_pos = fallback;
+                    return;
+                }
             }
         }
     }
@@ -100,13 +148,13 @@ impl Game {
 
     fn change_direction(&mut self) {
         if self.window.is_key_down(Key::W) && self.snake.direction != 3 {
-            self.snake.direction = 1;                  // Up
+            self.snake.direction = 1;                                               // Up
         } else if self.window.is_key_down(Key::A) && self.snake.direction != 0 {
-            self.snake.direction = 2;                  // Left
+            self.snake.direction = 2;                                               // Left
         } else if self.window.is_key_down(Key::S) && self.snake.direction != 1 {
-            self.snake.direction = 3;                  // Down
+            self.snake.direction = 3;                                               // Down
         } else if (self.window.is_key_down(Key::D)) && self.snake.direction != 2 {
-            self.snake.direction = 0;                  // Right
+            self.snake.direction = 0;                                               // Right
         } else {
 
         }

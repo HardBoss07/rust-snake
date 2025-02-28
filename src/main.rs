@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 use minifb::{Key, Window, WindowOptions};
 use std::thread;
 use std::time::Duration;
@@ -145,14 +147,14 @@ impl Game {
     }
 
     fn change_direction(&mut self) {
-        if self.window.is_key_down(Key::W) && self.snake.direction != 3 {
-            self.snake.direction = 1;                                               // Up
-        } else if self.window.is_key_down(Key::A) && self.snake.direction != 0 {
-            self.snake.direction = 2;                                               // Left
-        } else if self.window.is_key_down(Key::S) && self.snake.direction != 1 {
-            self.snake.direction = 3;                                               // Down
-        } else if (self.window.is_key_down(Key::D)) && self.snake.direction != 2 {
-            self.snake.direction = 0;                                               // Right
+        if self.window.is_key_down(Key::W) || self.window.is_key_down(Key::Up) && self.snake.direction != 3 { // Up
+            self.snake.direction = 1;
+        } else if self.window.is_key_down(Key::A) || self.window.is_key_down(Key::Left) && self.snake.direction != 0 { // Left
+            self.snake.direction = 2;
+        } else if self.window.is_key_down(Key::S) || self.window.is_key_down(Key::Down) && self.snake.direction != 1 { // Down
+            self.snake.direction = 3;
+        } else if (self.window.is_key_down(Key::D)) || self.window.is_key_down(Key::Right) && self.snake.direction != 2 { // Right
+            self.snake.direction = 0;
         } else {
 
         }

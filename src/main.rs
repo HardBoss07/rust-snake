@@ -4,7 +4,7 @@ use minifb::{Key, Window, WindowOptions};
 use std::thread;
 use std::time::Duration;
 use std::collections::VecDeque;
-use rand::random_range;
+use rand::Rng;
 
 struct Game {
     window: Window,
@@ -114,8 +114,8 @@ impl Game {
         let mut attempts = 0;
     
         while attempts < max_attempts {
-            let x = random_range(0..(self.height / self.cell_size));
-            let y = random_range(0..(self.width / self.cell_size));
+            let x = rng.gen_range(0..(self.height / self.cell_size));
+            let y = rng.gen_range(0..(self.width / self.cell_size));
             let target = [x, y];
     
             if !self.snake.body.contains(&target) {
@@ -251,6 +251,7 @@ impl Game {
 }
 
 fn main() {
+    println!("Controls:\nStart and Restart Game: Space\nQuit Game: Escape\nUp: W or Arrow Up\nLeft: A or Arrow Left\nDown: S or Arrow Down\nRight: D or Arrow Right");
     let mut game = Game::new();
     game.reset_buffer();
     game.run();

@@ -115,8 +115,6 @@ impl Game {
             let x = random_range(0..(self.height / self.cell_size));
             let y = random_range(0..(self.width / self.cell_size));
             let target = [x, y];
-
-            println!("{:?}", target);
     
             if !self.snake.body.contains(&target) {
                 self.cookie_pos = target;
@@ -184,7 +182,7 @@ impl Game {
             _ => {}
         }
 
-        if new_head[0] >= self.height / self.cell_size || new_head[1] >= self.width / self.cell_size {
+        if new_head[0] >= self.height / self.cell_size || new_head[1] >= self.width / self.cell_size || self.snake.body.contains(&new_head) {
             self.has_started = false;
             return;
         }
